@@ -1,5 +1,5 @@
-config
-crypto-config
+config/**
+crypto-config/**
 !config/.gitkeep
 !crypto-config/.gitkeep
 connection.yaml
