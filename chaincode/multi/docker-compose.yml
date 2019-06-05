@@ -1,0 +1,193 @@
+version: '2'
+
+networks:
+  basic:
+
+services:
+  ca.org1.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: ca
+    environment:
+      - FABRIC_CA_SERVER_CA_NAME=ca.org1.example.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.example.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.example.com-key.pem
+    volumes:
+      - ./crypto-config/peerOrganizations/org1.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.org1.example.com
+    networks:
+      - basic
+
+  ca.org2.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: ca
+    environment:
+      - FABRIC_CA_SERVER_CA_NAME=ca.org2.example.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org2.example.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ca.org2.example.com-key.pem
+    volumes:
+      - ./crypto-config/peerOrganizations/org2.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.org2.example.com
+    networks:
+      - basic
+
+  orderer.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: orderer
+    container_name: orderer.example.com
+    volumes:
+        - ./config/:/etc/hyperledger/configtx
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer
+        - ./crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/:/etc/hyperledger/msp/peerOrg1
+    networks:
+      - basic
+
+  peer0.org1.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: peer
+    container_name: peer0.org1.example.com
+    environment:
+      - CORE_PEER_ID=peer0.org1.example.com
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.org1.example.com:5984
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/msp/peer
+        - ./crypto-config/peerOrganizations/org1.example.com/users:/etc/hyperledger/msp/users
+        - ./config:/etc/hyperledger/configtx
+    depends_on:
+      - orderer.example.com
+      - couchdb.org1.example.com
+    networks:
+      - basic
+
+  couchdb.org1.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: couchdb
+    container_name: couchdb.org1.example.com
+    networks:
+      - basic
+
+  cli.org1.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: cli
+    container_name: cli.org1.example.com
+    environment:
+      - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/msp
+    command: /bin/bash
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/:/opt/gopath/src/github.com/hyperledger/fabric/peer/msp
+      - ./config:/opt/gopath/src/github.com/hyperledger/fabric/peer/config
+      - ./channel-artifact:/tmp/channel-artifact
+      # mount chaincode source code directory
+      - ./../../code-example/chaincode/golang:/opt/gopath/src/chaincodedev
+    networks:
+        - basic
+
+  chaincode.org1.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: chaincode
+    container_name: chaincode.org1.example.com
+    environment:
+      - CORE_PEER_ID=chaincode.org1.example.com
+      - CORE_PEER_ADDRESS=peer0.org1.example.com:7052
+      - OCRE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/msp
+    volumes:
+      - ./crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/:/opt/gopath/src/github.com/hyperledger/fabric/peer/msp
+      - ./config:/opt/gopath/src/github.com/hyperledger/fabric/peer/config
+      # mount chaincode source code directory
+      - ./../../code-example/chaincode/golang:/opt/gopath/src/chaincodedev
+    networks:
+        - basic
+
+  peer0.org2.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: peer
+    container_name: peer0.org2.example.com
+    environment:
+      - CORE_PEER_ID=peer0.org2.example.com
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_PEER_ADDRESS=peer0.org2.example.com:7051
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.org2.example.com:5984
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/msp/peer
+        - ./crypto-config/peerOrganizations/org2.example.com/users:/etc/hyperledger/msp/users
+        - ./config:/etc/hyperledger/configtx
+    depends_on:
+      - orderer.example.com
+      - couchdb.org2.example.com
+    networks:
+      - basic
+
+  couchdb.org2.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: couchdb
+    container_name: couchdb.org2.example.com
+    networks:
+      - basic
+
+  cli.org2.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: cli
+    container_name: cli.org2.example.com
+    environment:
+      - CORE_PEER_ADDRESS=peer0.org2.example.com:7051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/msp
+    command: /bin/bash
+    volumes:
+      - /var/run/:/host/var/run/
+      - ./crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/:/opt/gopath/src/github.com/hyperledger/fabric/peer/msp
+      - ./config:/opt/gopath/src/github.com/hyperledger/fabric/peer/config
+      - ./channel-artifact:/tmp/channel-artifact
+      # mount chaincode source code directory
+      - ./../../code-example/chaincode/golang:/opt/gopath/src/chaincodedev
+    networks:
+        - basic
+
+  chaincode.org2.example.com:
+    extends:
+      file: base/docker-compose-base.yml
+      service: chaincode
+    container_name: chaincode.org2.example.com
+    environment:
+      - CORE_PEER_ID=chaincode.org2.example.com
+      - CORE_PEER_ADDRESS=peer0.org2.example.com:7052
+      - OCRE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/msp
+    volumes:
+      - ./crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/:/opt/gopath/src/github.com/hyperledger/fabric/peer/msp
+      - ./config:/opt/gopath/src/github.com/hyperledger/fabric/peer/config
+      # mount chaincode source code directory
+      - ./../../code-example/chaincode/golang:/opt/gopath/src/chaincodedev
+    networks:
+        - basic
+
+  generate:
+    extends:
+      file: base/docker-compose-base.yml
+      service: cli
+    container_name: generate
+    environment:
+      - CORE_PEER_LOCALMSPID=DEFAULT
+    volumes:
+      - ./crypto-config:/opt/gopath/src/chaincodedev/crypto-config
+      - ./config:/opt/gopath/src/chaincodedev/config
+      - ./channel-artifact:/opt/gopath/src/chaincodedev/channel-artifact
+      - ./crypto-config.yaml:/opt/gopath/src/chaincodedev/crypto-config.yaml
+      - ./configtx.yaml:/opt/gopath/src/chaincodedev/configtx.yaml
