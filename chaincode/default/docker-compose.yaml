@@ -59,7 +59,6 @@ services:
     volumes:
         - /var/run/:/host/var/run/
         - ./msp:/etc/hyperledger/msp
-        - ./:/opt/gopath/src/chaincodedev/
     depends_on:
       - orderer
       - peer

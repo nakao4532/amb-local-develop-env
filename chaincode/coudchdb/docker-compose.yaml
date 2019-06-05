@@ -95,6 +95,8 @@ services:
     volumes:
         - /var/run/:/host/var/run/
         - ./msp:/etc/hyperledger/msp
+        - ./../../service-example/chaincode/golang:/opt/gopath/src/chaincode
+        - ./../../service-example/chaincode/nodejs:/usr/local/app
     depends_on:
       - orderer
       - peer

@@ -61,7 +61,7 @@ Terminal 1 - Start the network
 
 .. code:: bash
 
-    docker-compose -f docker-compose-simple.yaml up
+    docker-compose -f docker-compose.yaml up
 
 The above starts the network with the ``SingleSampleMSPSolo`` orderer profile and
 launches the peer in "dev mode".  It also launches two additional containers -
@@ -80,20 +80,19 @@ You should see the following:
 
 .. code:: bash
 
-  root@d2629980e76b:/opt/gopath/src/chaincode#
+  root@d2629980e76b:/opt/gopath/src/chaincodedev#
 
 Now, compile your chaincode:
 
 .. code:: bash
 
-  cd chaincode_example02/go
-  go build -o chaincode_example02
+  go build -o chaincode .
 
 Now run the chaincode:
 
 .. code:: bash
 
-  CORE_PEER_ADDRESS=peer:7052 CORE_CHAINCODE_ID_NAME=mycc:0 ./chaincode_example02
+  ./chaincode_example02
 
 The chaincode is started with peer and chaincode logs indicating successful registration with the peer.
 Note that at this stage the chaincode is not associated with any channel. This is done in subsequent steps
@@ -114,27 +113,17 @@ We'll leverage the CLI container to drive these calls.
 
 .. code:: bash
 
-  peer chaincode install -p chaincodedev/chaincode/chaincode_example02/go -n mycc -v 0
-  peer chaincode instantiate -n mycc -v 0 -c '{"Args":["init","a","100","b","200"]}' -C myc
+  peer chaincode install -p chaincodedev -n mycc -v 0
+  peer chaincode instantiate -n mycc -v 0 -c '{"Args":["init"]}' -C myc
 
-Now issue an invoke to move ``10`` from ``a`` to ``b``.
-
-.. code:: bash
-
-  peer chaincode invoke -n mycc -c '{"Args":["invoke","a","b","10"]}' -C myc
-
-Finally, query ``a``.  We should see a value of ``90``.
+Now issue an invoke.
 
 .. code:: bash
 
-  peer chaincode query -n mycc -c '{"Args":["query","a"]}' -C myc
+  peer chaincode invoke -n mycc -c '{"Args":["invoke"]}' -C myc
 
 Testing new chaincode
 ---------------------
-
-By default, we mount only ``chaincode_example02``.  However, you can easily test different
-chaincodes by adding them to the ``chaincode`` subdirectory and relaunching
-your network.  At this point they will be accessible in your ``chaincode`` container.
 
 .. Licensed under Creative Commons Attribution 4.0 International License
      https://creativecommons.org/licenses/by/4.0/
