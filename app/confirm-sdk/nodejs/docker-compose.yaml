@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+  sdk-doc:
+    image: fabric-docs/sdk-node:v1.2.2
+    build:
+      context: ./
+    ports:
+      - 8080:80

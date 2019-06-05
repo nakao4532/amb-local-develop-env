@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+  sdk-doc:
+    image: fabric-docs/chaincode-golang:v1.2.1
+    build:
+      context: ./
+    ports:
+      - 8082:80
