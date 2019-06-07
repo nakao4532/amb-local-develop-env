@@ -18,13 +18,15 @@ services=(
     "peer0.org1.example.com"
     "couchdb.org1.example.com"
     "cli.org1.example.com"
+    "chaincode.org1.example.com"
     "ca.org2.example.com"
     "peer0.org2.example.com"
     "couchdb.org2.example.com"
     "cli.org2.example.com"
+    "chaincode.org2.example.com"
 )
 
-echo ${services[@]} | docker-compose -f docker-compose.yml up -d
+echo ${services[@]} | xargs docker-compose -f docker-compose.yml up -d
 docker ps -a
 
 # wait for Hyperledger Fabric to start
