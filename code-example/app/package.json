@@ -1,0 +1,14 @@
+{
+    "name": "amazon-managed-blockchain-application-example",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "node src/index.js"
+    },
+    "engine-strict": true,
+    "engineStrict": true,
+    "license": "Apache-2.0",
+    "dependencies": {
+        "fabric-client": "1.2.2",
+        "fabric-ca-client": "1.2.2"
+    } 
+}
